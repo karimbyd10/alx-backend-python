@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+
+
 import unittest
 from parameterized import parameterized
 from utils import access_nested_map
@@ -23,9 +25,9 @@ class TestAccessNestedMap(unittest.TestCase):
         with self.assertRaises(KeyError) as ctx:
             access_nested_map(nested_map, path)
         self.assertEqual(str(ctx.exception), repr(path[-1]))
+ 
 
 
-import unittest
 from unittest.mock import patch, Mock
 from parameterized import parameterized
 from utils import get_json
@@ -48,8 +50,6 @@ class TestGetJson(unittest.TestCase):
             mock_get.assert_called_once_with(test_url)
             self.assertEqual(result, test_payload)
 
-
-import unittest
 from unittest.mock import patch
 from utils import memoize
 
@@ -63,7 +63,7 @@ class TestMemoize(unittest.TestCase):
 
             @memoize
             def a_property(self):
-I                return self.a_method()
+                return self.a_method()
 
         with patch.object(TestClass, "a_method", return_value=42) as mock_method:
             obj = TestClass()
@@ -73,5 +73,3 @@ I                return self.a_method()
             self.assertEqual(result1, 42)
             self.assertEqual(result2, 42)
             mock_method.assert_called_once()
-
-
