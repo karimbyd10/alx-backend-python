@@ -1,7 +1,5 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.http import JsonResponse
 
-class HealthCheckView(APIView):
-    def get(self, request):
-        return Response({"status": "ok"})
+def test_view(request):
+    return JsonResponse({"message": "Chats app is working"})
 
