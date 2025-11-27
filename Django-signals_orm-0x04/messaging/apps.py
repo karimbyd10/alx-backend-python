@@ -8,3 +8,4 @@ class MessagingConfig(AppConfig):
     def ready(self):
         import messaging.signals
 
+
