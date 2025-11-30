@@ -7,8 +7,50 @@ class Message(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_messages")
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    edited = models.BooleanField(default=False)  # Track if message was edited
+    edited = models.BooleanField(default=False)  # ✅ Track if message has been edited
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.content[:20]}"
+# messaging/models.py (below Message)
+class MessageHistory(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="history")
+    old_content = models.TextField()
+    edited_at = models.DateTimeField(auto_now_add=True)  # ✅ Track when edited
+    edited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # optional: who edited
+
+    def __str__(self):
+        return f"History of message {self.message.id} at {self.edited_at}"
+# messaging/signals.py
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from .models import Message, MessageHistory
+
+@receiver(pre_save, sender=Message)
+def log_message_edit(sender, instance, **kwargs):
+    if not instance.pk:
+        # New message, nothing to log
+        return
+
+    try:
+        old_message = Message.objects.get(pk=instance.pk)
+    except Message.DoesNotExist:
+        return
+
+    if old_message.content != instance.content:
+        # ✅ Log old content into MessageHistory
+        MessageHistory.objects.create(
+            message=instance,
+            old_content=old_message.content,
+            edited_by=instance.sender  # optional, you can adjust
+        )
+        instance.edited = True  # ✅ Mark as edited
+# messaging/apps.py
+from django.apps import AppConfig
+
+class MessagingConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'messaging'
+
+    def ready(self):
+        import messaging.signals
 
