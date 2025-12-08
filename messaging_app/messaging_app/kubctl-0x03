@@ -3,15 +3,16 @@ set -e
 
 NAMESPACE=default
 DEPLOYMENT=django-blue
-SERVICE_URL=http://localhost:8000  # Change if your service URL differs
+SERVICE_URL=http://localhost:8000  # Update to your service URL if different
 
-echo "🚀 Applying updated deployment (image v2.0)..."
+echo "🚀 Applying updated deployment with Docker image v2.0..."
 kubectl apply -f messaging_app/blue_deployment.yaml -n $NAMESPACE
 
 echo "🔄 Triggering rolling update..."
 kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE
 
 echo "📡 Testing app availability during update..."
+# Continuously send requests to check for downtime
 for i in {1..20}; do
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL)
     TIMESTAMP=$(date +"%T")
