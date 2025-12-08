@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+NAMESPACE=default
+
+echo "🔵 Deploying Blue version..."
+kubectl apply -f messaging_app/blue_deployment.yaml -n $NAMESPACE
+
+echo "🟢 Deploying Green version..."
+kubectl apply -f messaging_app/green_deployment.yaml -n $NAMESPACE
+
+echo "🔄 Ensuring pods are ready..."
+kubectl rollout status deployment/django-blue -n $NAMESPACE
+kubectl rollout status deployment/django-green -n $NAMESPACE
+
+echo "📋 Checking logs for Green deployment..."
+kubectl logs -l app=django,version=green -n $NAMESPACE --tail=50
+
+echo "🚦Switching Service to Green version..."
+kubectl patch service django-service -n $NAMESPACE -p '{"spec":{"selector":{"app":"django","version":"green"}}}'
+
+echo "✅ Traffic is now routed to Green deployment."
+
