@@ -1,0 +1,12 @@
+# Commands used to install NGINX Ingress Controller and apply ingress.yaml
+
+# Install NGINX ingress controller on Minikube
+minikube addons enable ingress
+
+# Apply the ingress resource
+yaml_file="ingress.yaml"
+kubectl apply -f $yaml_file
+
+# Verify ingress
+kubectl get ingress
+
