@@ -1,22 +1,6 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: django-blue
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: django
-      version: blue
-  template:
-    metadata:
-      labels:
-        app: django
-        version: blue
-    spec:
-      containers:
-      - name: django
-        image: <current_django_image>:<tag>
-        ports:
-        - containerPort: 8000
+containers:
+  - name: django
+    image: <your-docker-repo>/django-app:2.0   # updated from previous version
+    ports:
+      - containerPort: 8000
 
