@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -6,8 +5,9 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'github-creds',
-                    url: 'https://github.com/karimbyd10/alx-backend-python.git'
+                git branch: 'main',
+                    credentialsId: 'github-creds',
+                    url: 'https://github.com/karimbyd10a/alx-backend-python.git'
             }
         }
 
@@ -16,8 +16,8 @@ pipeline {
                 sh '''
                 python3 -m venv venv
                 . venv/bin/activate
-                pip install --upgrade pip
-                pip install -r messaging_app/requirements.txt
+                pip3 install --upgrade pip
+                pip3 install -r messaging_app/requirements.txt
                 '''
             }
         }
@@ -35,14 +35,6 @@ pipeline {
     post {
         always {
             junit 'report.xml'
-        }
-
-        success {
-            echo 'Tests completed successfully!'
-        }
-
-        failure {
-            echo 'Tests failed!'
         }
     }
 }
