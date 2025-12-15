@@ -1,13 +1,18 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "your_dockerhub_username/messaging_app"
+        DOCKER_TAG = "latest"
+        DOCKER_CREDENTIALS_ID = "dockerhub-creds"
+    }
+
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git branch: 'main',
-                    credentialsId: 'github-creds',
-                    url: 'https://github.com/karimbyd10a/alx-backend-python.git'
+                    url: 'https://github.com/<your-username>/alx-backend-python.git'
             }
         }
 
@@ -30,11 +35,36 @@ pipeline {
                 '''
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} messaging_app
+                    """
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
+                        sh """
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
-        always {
-            junit 'report.xml'
+        success {
+            echo "✅ Docker image built and pushed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
