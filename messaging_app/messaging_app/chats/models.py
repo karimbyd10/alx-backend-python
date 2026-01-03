@@ -1,45 +1,41 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
 
 
 class User(AbstractUser):
     """
-    Custom User model extending Django's AbstractUser
+    Custom User model extending AbstractUser
     """
-
-    ROLE_CHOICES = (
-        ('guest', 'Guest'),
-        ('host', 'Host'),
-        ('admin', 'Admin'),
-    )
 
     user_id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False
     )
-    email = models.EmailField(unique=True, null=False, blank=False)
+
+    first_name = models.CharField(max_length=150, null=False)
+    last_name = models.CharField(max_length=150, null=False)
+    email = models.EmailField(unique=True, null=False)
+    password = models.CharField(max_length=128)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
-    role = models.CharField(
-        max_length=10,
-        choices=ROLE_CHOICES,
-        null=False,
-        blank=False
+
+    ROLE_CHOICES = (
+        ('guest', 'Guest'),
+        ('host', 'Host'),
+        ('admin', 'Admin'),
     )
-    created_at = models.DateTimeField(default=timezone.now)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, null=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
-
-    def __str__(self):
-        return self.email
+    REQUIRED_FIELDS = ['username']
 
 
 class Conversation(models.Model):
     """
-    Conversation model tracking users involved in a conversation
+    Conversation model tracking which users are involved
     """
 
     conversation_id = models.UUIDField(
@@ -47,19 +43,14 @@ class Conversation(models.Model):
         default=uuid.uuid4,
         editable=False
     )
-    participants = models.ManyToManyField(
-        User,
-        related_name='conversations'
-    )
-    created_at = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return f"Conversation {self.conversation_id}"
+    participants = models.ManyToManyField(User)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Message(models.Model):
     """
-    Message model representing messages sent within a conversation
+    Message model
     """
 
     message_id = models.UUIDField(
@@ -67,19 +58,18 @@ class Message(models.Model):
         default=uuid.uuid4,
         editable=False
     )
+
     sender = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
-        related_name='sent_messages'
+        on_delete=models.CASCADE
     )
+
     conversation = models.ForeignKey(
         Conversation,
-        on_delete=models.CASCADE,
-        related_name='messages'
+        on_delete=models.CASCADE
     )
-    message_body = models.TextField(null=False, blank=False)
-    sent_at = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return f"Message {self.message_id} from {self.sender.email}"
+    message_body = models.TextField(null=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
