@@ -1,7 +1,6 @@
 # messaging_app/chats/views.py
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from .models import User, Conversation, Message
 from .serializers import UserSerializer, ConversationSerializer, MessageSerializer
@@ -11,11 +10,14 @@ from .serializers import UserSerializer, ConversationSerializer, MessageSerializ
 # ----------------------------
 class ConversationViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for listing, retrieving, creating conversations.
+    API endpoint for listing, retrieving, and creating conversations.
     """
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ['created_at']
+    search_fields = ['participants__first_name', 'participants__last_name', 'participants__email']
 
     def get_queryset(self):
         # Only return conversations the current user participates in
@@ -30,15 +32,15 @@ class ConversationViewSet(viewsets.ModelViewSet):
             )
 
         participants = User.objects.filter(user_id__in=participant_ids)
-        if len(participants) < 2:
+        if len(participants) < 1:
             return Response(
-                {"error": "A conversation must have at least 2 participants."},
+                {"error": "A conversation must have at least 2 participants including yourself."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         conversation = Conversation.objects.create()
         conversation.participants.set(participants)
-        conversation.participants.add(request.user)  # ensure current user is included
+        conversation.participants.add(request.user)
         conversation.save()
 
         serializer = self.get_serializer(conversation)
@@ -55,13 +57,16 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ['sent_at']
+    search_fields = ['message_body', 'sender__first_name', 'sender__last_name', 'sender__email']
 
     def get_queryset(self):
-        # Optionally filter by conversation_id
+        # Filter messages by conversation_id query parameter if provided
         conversation_id = self.request.query_params.get('conversation_id')
         if conversation_id:
             return self.queryset.filter(conversation_id=conversation_id).order_by('sent_at')
-        return self.queryset.none()  # default empty if no conversation specified
+        return self.queryset.none()
 
     def create(self, request, *args, **kwargs):
         conversation_id = request.data.get('conversation_id')
