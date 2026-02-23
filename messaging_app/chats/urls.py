@@ -12,4 +12,5 @@ router.register(r'messages', MessageViewSet, basename='message')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('api/', include('chats.urls')),  # <-- This registers the chats API under /api/
 ]
