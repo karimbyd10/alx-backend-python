@@ -1,6 +1,0 @@
-containers:
-  - name: django
-    image: <your-docker-repo>/django-app:2.0   # updated from previous version
-    ports:
-      - containerPort: 8000
-
