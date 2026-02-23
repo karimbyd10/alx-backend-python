@@ -45,11 +45,15 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {
+    # Require authentication for all API endpoints by default
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+    
+    # Use session authentication (default for web) and token auth if needed
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
 }
 
