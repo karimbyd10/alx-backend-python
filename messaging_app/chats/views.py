@@ -67,6 +67,14 @@ class MessageViewSet(viewsets.ModelViewSet):
         if conversation_id:
             return self.queryset.filter(conversation_id=conversation_id).order_by('sent_at')
         return self.queryset.none()
+    def get_queryset(self):
+        """
+        Only return messages where the logged-in user
+        is a participant in the conversation.
+        """
+        return Message.objects.filter(
+            conversation__participants=self.request.user
+        )
 
     def create(self, request, *args, **kwargs):
         conversation_id = request.data.get('conversation_id')
