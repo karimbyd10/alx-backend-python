@@ -1,18 +1,13 @@
 from rest_framework import permissions
 
-class IsOwnerOfConversation(permissions.BasePermission):
+class IsAuthenticatedAndOwner(permissions.BasePermission):
     """
-    Allows access only to users who are participants of the conversation.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        return request.user in obj.participants.all()
-
-
-class IsSenderOfMessage(permissions.BasePermission):
-    """
-    Allows access only to the sender of the message.
+    Allows access only to authenticated users who own the object.
     """
 
     def has_object_permission(self, request, view, obj):
-        return obj.sender == request.user
+        return (
+            request.user and
+            request.user.is_authenticated and
+            obj.sender == request.user
+        )
